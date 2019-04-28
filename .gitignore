@@ -5,3 +5,7 @@
 *.import.scm
 *.install.sh
 *.build.sh
+*.static.c
+tests/run
+tests/*.svg
+salmonella*
