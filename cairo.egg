@@ -1,0 +1,59 @@
+;;; cairo.egg -*- Scheme -*-
+
+((synopsis "Chicken bindings for Cairo, a vector graphics library")
+ (category graphics)
+ (license "LGPL-2.1")
+ (author "Michael Bridgen and Tony Garnock-Jones")
+ (components (extension cairo
+                        (source-dependencies "types.scm")
+                        (component-dependencies cairo.surface.svg
+                                                cairo.surface.image
+                                                cairo.surface.xlib)
+                        (csc-options "-I/usr/include/cairo"
+                                     "-I/usr/include/glib-2.0"
+                                     "-I/usr/lib/glib-2.0/include"
+                                     "-I/usr/lib/libffi-3.2.1/include"
+                                     "-I/usr/include/pixman-1"
+                                     "-I/usr/include/freetype2"
+                                     "-I/usr/include/libpng16"
+                                     "-I/usr/include/harfbuzz"
+                                     "-I/usr/include/uuid")
+                        (link-options "-L" "-lcairo"))
+
+             (extension cairo.surface.svg
+                        (source-dependencies "types.scm")
+                        (csc-options "-I/usr/include/cairo"
+                                     "-I/usr/include/glib-2.0"
+                                     "-I/usr/lib/glib-2.0/include"
+                                     "-I/usr/lib/libffi-3.2.1/include"
+                                     "-I/usr/include/pixman-1"
+                                     "-I/usr/include/freetype2"
+                                     "-I/usr/include/libpng16"
+                                     "-I/usr/include/harfbuzz"
+                                     "-I/usr/include/uuid")
+                        (link-options "-L" "-lcairo"))
+             (extension cairo.surface.image
+                        (source-dependencies "types.scm")
+                        (csc-options "-I/usr/include/cairo"
+                                     "-I/usr/include/glib-2.0"
+                                     "-I/usr/lib/glib-2.0/include"
+                                     "-I/usr/lib/libffi-3.2.1/include"
+                                     "-I/usr/include/pixman-1"
+                                     "-I/usr/include/freetype2"
+                                     "-I/usr/include/libpng16"
+                                     "-I/usr/include/harfbuzz"
+                                     "-I/usr/include/uuid")
+                        (link-options "-L" "-lcairo"))
+             (extension cairo.surface.xlib
+                        (source-dependencies "types.scm")
+                        (csc-options "-I/usr/include/cairo"
+                                     "-I/usr/include/glib-2.0"
+                                     "-I/usr/lib/glib-2.0/include"
+                                     "-I/usr/lib/libffi-3.2.1/include"
+                                     "-I/usr/include/pixman-1"
+                                     "-I/usr/include/freetype2"
+                                     "-I/usr/include/libpng16"
+                                     "-I/usr/include/harfbuzz"
+                                     "-I/usr/include/uuid")
+                        (link-options "-L" "-lcairo"))
+             ))

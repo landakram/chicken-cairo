@@ -169,18 +169,13 @@
 (import scheme)
 (import chicken.base)
 (import chicken.foreign)
-;; (import lolevel)
 (import chicken.memory)
 (import chicken.format)
 (import srfi-1 srfi-4)
 
-(import-for-syntax scheme)
 (import chicken.syntax)
 (import-for-syntax chicken.string)
-(import chicken.string)
-
 (import-for-syntax srfi-1 srfi-13 srfi-14)
-;; (import-for-syntax data-structures)
 
 (foreign-declare "#include \"cairo.h\"")
 

@@ -1,2 +1,7 @@
 .envrc
-cairo.so
+*.so
+*.link
+*.o
+*.import.scm
+*.install.sh
+*.build.sh

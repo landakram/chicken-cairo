@@ -41,4 +41,3 @@ cairo.egg:
 clean:
 	rm -f $(TARGETS)
 	rm -f STACKTRACE
-	rm -f cairo.egg

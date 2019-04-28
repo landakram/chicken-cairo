@@ -1,7 +1,15 @@
 (module cairo.surface.image
-  ()
-  (import scheme chicken lolevel foreign)
-  (import-for-syntax srfi-1 srfi-13 data-structures)
+  *
+  (import scheme)
+  (import chicken.base)
+  (import chicken.foreign)
+  (import chicken.memory)
+  (import chicken.format)
+  (import srfi-1 srfi-4)
+  
+  (import chicken.syntax)
+  (import-for-syntax chicken.string)
+  (import-for-syntax srfi-1 srfi-13 srfi-14)
   (include "types.scm")
   (foreign-declare "#include \"cairo.h\"")
 
