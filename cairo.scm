@@ -169,9 +169,6 @@
 (import scheme)
 (import chicken.base)
 (import chicken.foreign)
-(import chicken.memory)
-(import chicken.format)
-(import srfi-1 srfi-4)
 
 (import chicken.syntax)
 (import-for-syntax chicken.string)

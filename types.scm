@@ -1,3 +1,14 @@
+(import scheme)
+(import chicken.base)
+(import chicken.foreign)
+(import chicken.memory)
+(import chicken.format)
+(import srfi-1 srfi-4)
+
+(import chicken.syntax)
+(import-for-syntax chicken.string)
+(import-for-syntax srfi-1 srfi-13 srfi-14)
+
 ;; defs: Defines a bunch of foreign procedures, renaming the symbol to be more scheme-y
 (define-for-syntax (struct-name str)
   (string-append "cairo_"
