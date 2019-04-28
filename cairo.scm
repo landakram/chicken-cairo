@@ -21,27 +21,183 @@
 ; --------------------------------------------------
 
 (module cairo
- ()
- (import chicken scheme foreign lolevel srfi-1 srfi-4)
+(pi
+ create
+ destroy!
+ status
+ save!
+ restore!
+ get-target
+ push-group!
+ push-group-with-content!
+ pop-group!
+ pop-group-to-source!
+ get-group-target
+ set-source-rgb!
+ set-source-rgba!
+ set-source!
+ set-source-surface!
+ get-source
+ set-antialias!
+ get-antialias
+ set-dash!
+ get-dash-count
+ set-fill-rule!
+ get-fill-rule
+ set-line-cap!
+ get-line-cap
+ set-line-join!
+ get-line-join
+ set-line-width!
+ get-line-width
+ set-miter-limit!
+ get-miter-limit
+ set-operator!
+ get-operator
+ set-tolerance!
+ get-tolerance
+ clip!
+ clip-preserve!
+ in-clip?
+ reset-clip!
+ fill!
+ fill-preserve!
+ in-fill?
+ mask!
+ mask-surface!
+ paint!
+ paint-with-alpha!
+ stroke!
+ stroke-preserve!
+ in-stroke?
+ copy-page!
+ show-page!
 
- (import-for-syntax scheme srfi-1 srfi-13 srfi-14 data-structures)
+ ;; Paths procedures
+ ;; -----------------------------------------------
 
- (foreign-declare "#include \"cairo.h\"")
+ copy-path
+ copy-path-flat
+ path-destroy!
+ append-path!
+ has-current-point?
+ new-path!
+ new-sub-path!
+ close-path!
+ arc!
+ arc-negative!
+ curve-to!
+ line-to!
+ move-to!
+ rectangle!
+ text-path!
+ rel-curve-to!
+ rel-line-to!
+ rel-move-to!
+
+ ;; Surface procedures
+ ;; -----------------------------------------------
+
+ surface-create-similar
+ surface-create-similar-image
+ surface-create-for-rectangle
+ surface-destroy!
+ surface-status
+ surface-finish!
+ surface-flush!
+ surface-get-device
+ surface-get-content
+ surface-mark-dirty!
+ surface-mark-dirty-rectangle!
+ surface-set-device-offset!
+ surface-set-device-scale!
+ surface-set-fallback-resolution!
+ surface-get-type
+ surface-copy-page!
+ surface-show-page!
+ surface-has-show-text-glyphs?
+ surface-supports-mime-type?
+ surface-unmap-image!
+
+ ;; Patterns procedures
+ ;; -----------------------------------------------
+
+ pattern-create-radial
+ pattern-create-mesh
+ pattern-destroy!
+ pattern-add-color-stop-rgb!
+ pattern-add-color-stop-rgba!
+ mesh-pattern-begin-patch!
+ mesh-pattern-end-patch!
+ mesh-pattern-move-to!
+ mesh-pattern-line-to!
+ mesh-pattern-curve-to!
+ mesh-pattern-set-corner-color-rgb!
+ mesh-pattern-set-corner-color-rgba!
+ pattern-set-extend!
+
+ ;; Transformations procedures
+ ;; -----------------------------------------------
+
+ translate!
+ scale!
+ rotate!
+ identity-matrix
+
+ ;; Text procedures
+ ;; -----------------------------------------------
+
+ select-font-face!
+ set-font-size!
+ show-text!
+ font-extents
+ text-extents
+ set-font-options!
+ font-options-set-antialias!
+ font-options-set-hint-style!
+ font-options-set-hint-metrics!
+
+ ;; Font face procedures
+ ;; -----------------------------------------------
+
+ font-face-destroy!
+ font-face-status
+ font-face-get-type
+ font-options-create
+ get-font-face)
+
+(import scheme)
+(import chicken.base)
+(import chicken.foreign)
+;; (import lolevel)
+(import chicken.memory)
+(import chicken.format)
+(import srfi-1 srfi-4)
+
+(import-for-syntax scheme)
+(import chicken.syntax)
+(import-for-syntax chicken.string)
+(import chicken.string)
+
+(import-for-syntax srfi-1 srfi-13 srfi-14)
+;; (import-for-syntax data-structures)
+
+(foreign-declare "#include \"cairo.h\"")
 
 ;; Define a list of DEFINEs or enums at once.
 (define-syntax --cairo-flags
-  (lambda (e r c)
-    (let ((strs (cdr e)))
-      `(begin
-  ,@(append-map (lambda (str)
-    (let* ((sym (string->symbol str))
-    (psym (string->symbol (string-append "-" (symbol->string sym)))))
-      `((,(r 'define-foreign-variable) ,psym unsigned-integer ,str)
-        (,(r 'define) ,sym ,psym))))
-         strs)))))
+  (er-macro-transformer
+   (lambda (e r c)
+     (let ((strs (cdr e)))
+       `(begin
+          ,@(append-map (lambda (str)
+                          (let* ((sym (string->symbol str))
+                                 (psym (string->symbol (string-append "-" (symbol->string sym)))))
+                            `((,(r 'define-foreign-variable) ,psym unsigned-integer ,str)
+                              (,(r 'define) ,sym ,psym))))
+                        strs))))))
 
-(include "types.scm")
-
+(include "types")
 
 ;; Context procedures
 ;; -----------------------------------------------
@@ -222,8 +378,5 @@
   (status font-face-status font-face)
   (font-type font-face-get-type font-face)
   (font-options font-options-create)
-  (font-face get-font-face context)
-  
-  )
-
+  (font-face get-font-face context))
 )

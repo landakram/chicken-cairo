@@ -1,43 +1,48 @@
 ;; defs: Defines a bunch of foreign procedures, renaming the symbol to be more scheme-y
 (define-for-syntax (struct-name str)
   (string-append "cairo_"
-    (string-translate
-      (string-trim-right str (lambda (c) (or (eq? c #\!) (eq? c #\?))))
-      #\- #\_)))
+                 (string-translate
+                  (string-trim-right str (lambda (c) (or (eq? c #\!) (eq? c #\?))))
+                  #\- #\_)))
 
 (define-for-syntax (symbol->enum-ident prefix sym)
   (string-append prefix (string-upcase (string-translate (symbol->string sym) #\- #\_))))
 
 (define-syntax defs
   (ir-macro-transformer
-    (lambda (exp inject compare)
-      `(begin
-         ,@(map
-            (lambda (def)
-              (let ((name (strip-syntax (second def)))
-                    (return-type (first def))
-                    (argument-types (cddr def)))
-                `(begin
-                   (export ,name)
-                   (define ,name
-                     (foreign-lambda ,return-type ,(struct-name (symbol->string name))
-                                     ,@argument-types)))))
-            (cdr exp))))))
+   (lambda (exp inject compare)
+     `(begin
+        ,@(map
+           (lambda (def)
+             (let ((name (strip-syntax (second def)))
+                   (return-type (first def))
+                   (argument-types (cddr def)))
+               `(begin
+                  (define ,name
+                    (foreign-lambda ,return-type ,(struct-name (symbol->string name))
+                      ,@argument-types)))))
+           (cdr exp))))))
 
 (define-syntax enum
   (ir-macro-transformer
-    (lambda (exn inject compare)
-      (let* ((typename (inject (strip-syntax (second exn))))
-             (prefix (third exn))
-             (symbols (map strip-syntax (cdddr exn)))
-             (bindings (map (lambda (s) `(,s (foreign-value ,(symbol->enum-ident prefix s) integer)))
-                              symbols))
-             (sym->int (map (lambda (s) `(cons ',s ,s)) symbols))
-             (int->sym (map (lambda (s) `(cons ,s ',s)) symbols)))
-        `(let ,bindings
-           (define-foreign-type ,typename integer
-             (lambda (sym) (cdr (assq sym (list ,@sym->int))))
-             (lambda (int) (cdr (assq int (list ,@int->sym)))))) ))))
+   (lambda (exn inject compare)
+     (let* ((typename (inject (strip-syntax (second exn))))
+            (prefix (third exn))
+            (symbols (map strip-syntax (cdddr exn)))
+            (bindings (map (lambda (s) `(,s (foreign-value ,(symbol->enum-ident prefix s) integer)))
+                           symbols))
+            (sym->int (map (lambda (s) `(cons ',s ,s)) symbols))
+            (int->sym (map (lambda (s) `(cons ,s ',s)) symbols)))
+       `(define-foreign-type ,typename integer
+          ; There is probably a more efficient way of doing this than 
+          ; constructing the bindings inside te lambda i.e. just defining
+          ; the symbols in the toplevel
+          (lambda (sym)
+            (let ,bindings
+              (cdr (assq sym (list ,@sym->int)))))
+          (lambda (int)
+            (let ,bindings
+              (cdr (assq int (list ,@int->sym)))))) ))))
 
 (define ((check-pointer tag) o)
   (if (tagged-pointer? o tag)
@@ -50,7 +55,6 @@
 ;; Constants and enums
 ;; -----------------------------------------------
 
-(export pi)
 (define pi (foreign-value "M_PI" float))
 
 (enum antialias "CAIRO_ANTIALIAS_"
@@ -127,16 +131,16 @@
 
 ;; TODO move these into backend specific modules
 #;(enum pdf-version "CAIRO_PDF_VERSION_"
-      1-4 1-5)
+1-4 1-5)
 
 #;(enum ps-level "CAIRO_PS_LEVEL"
-      2 3)
+2 3)
 
 #;(enum svg-version "CAIRO_SVG_VERSION_"
-      1-1 1-2)
+1-1 1-2)
 
 #;(enum script-mode "CAIRO_SCRIPT_MODE_"
-      ascii binary)
+ascii binary)
 
 (enum status "CAIRO_STATUS_"
       success no-memory invalid-restore invalid-pop-group

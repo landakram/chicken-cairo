@@ -1,6 +1,6 @@
 ;;;; -*- Scheme -*-
-(use srfi-1)
-(use srfi-13)
+(import srfi-1)
+(import srfi-13)
 
 ;;; on some systems cairo is compiled with pthread support using the
 ;;; option '-pthread'. We need to parse the pkgconfig output to prefix
