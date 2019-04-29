@@ -25,12 +25,15 @@
      `(begin
         ,@(map
            (lambda (def)
-             (let ((name (strip-syntax (second def)))
+             (let* ((unqualified-name (strip-syntax (second def)))
+                    (name (string->symbol
+                          (string-append "cairo-"
+                                         (symbol->string unqualified-name))))
                    (return-type (first def))
                    (argument-types (cddr def)))
                `(begin
                   (define ,name
-                    (foreign-lambda ,return-type ,(struct-name (symbol->string name))
+                    (foreign-lambda ,return-type ,(struct-name (symbol->string unqualified-name))
                       ,@argument-types)))))
            (cdr exp))))))
 
@@ -66,7 +69,7 @@
 ;; Constants and enums
 ;; -----------------------------------------------
 
-(define pi (foreign-value "M_PI" float))
+(define cairo-pi (foreign-value "M_PI" float))
 
 (enum antialias "CAIRO_ANTIALIAS_"
       default none gray subpixel fast good best)
