@@ -53,9 +53,12 @@
 
 (define-foreign-variable sizeof-cairo-text-extents int "sizeof(cairo_text_extents_t)")
 
-;; We want a garbage-collectable type here; wrap a record type around a byte vector buffer, and make
-;; chicken type-pun the buffer to the C struct.  We only ever construct these to hand to a function
-;; for filling in, so no initialisation needed aside from the buffer.
+;; TODO: I think we could use define-foreign-record-type here.
+;;
+;; We want a garbage-collectable type here; wrap a record type around a byte
+;; vector buffer, and make chicken type-pun the buffer to the C struct.
+;; We only ever construct these to hand to a function for filling in, so no
+;; initialisation needed aside from the buffer.
 (define-record cairo-text-extents-type buffer)
 (let ((maker make-cairo-text-extents-type))
   (set! make-cairo-text-extents-type
@@ -91,6 +94,7 @@
 
 (define-foreign-variable sizeof-cairo-font-extents int "sizeof(cairo_font_extents_t)")
 
+;; TODO: I think we could use define-foreign-record-type here.
 (define-record cairo-font-extents-type buffer)
 (let ((maker make-cairo-font-extents-type))
   (set! make-cairo-font-extents-type
@@ -282,8 +286,8 @@
   (void select-font-face context c-string font-slant font-weight)
   (void set-font-size context double)
   (void show-text context c-string)
-  (void font-extents context nonnull-f64vector)
-  (void text-extents context c-string nonnull-f64vector)
+  (void font-extents context cairo_font_extents_t)
+  (void text-extents context c-string cairo_text_extents_t)
   (void set-font-options context font-options)
   (void font-options-set-antialias font-options antialias)
   (void font-options-set-hint-style font-options hint-style)
