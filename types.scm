@@ -228,4 +228,5 @@ ascii binary)
 ;; Open data types
 ;; -----------------------------------------------
 
-(define-foreign-type matrix nonnull-f64vector)
+(define-foreign-type matrix (c-pointer "cairo_matrix_t")
+  (check-pointer 'cairo:matrix) (add-tag 'cairo:matrix))

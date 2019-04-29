@@ -133,6 +133,7 @@
   (void save context)
   (void restore context)
   (surface get-target context)
+  (void get-matrix context matrix)
   (void push-group context)
   (void push-group-with-content context content)
   (pattern pop-group context)
@@ -221,6 +222,7 @@
   (surface surface-create-similar surface content int int)
   (surface surface-create-similar-image surface format int int)
   (surface surface-create-for-rectangle surface double double double double)
+  (status surface-write-to-png surface c-string)
   (void surface-destroy surface)
   (status surface-status surface)
   (void surface-finish surface)
@@ -274,10 +276,33 @@
   (void translate context double double)
   (void scale context double double)
   (void rotate context double)
-  (void identity-matrix context)
-  
+  (void transform context matrix)
+  (void set-matrix context matrix)
+  (void identity-matrix context))
+
+;; Matrix procedures
+;; -----------------------------------------------
+
+(defs
+  (void matrix-init-identity matrix)
+  (void matrix-init matrix
+        double double    ;; a, b,
+        double double    ;; c, d
+        double double)   ;; tx, ty
+  (void matrix-translate matrix double double) ;; x, y
+  (void matrix-scale matrix double double) ;; x, y
+  (void matrix-rotate matrix double) ;; radians
+  (status matrix-invert matrix)
+  (void matrix-multiply matrix matrix matrix)
+  (void matrix-transform-distance matrix f64vector f64vector)
+  (void matrix-transform-point matrix f64vector f64vector)
   )
 
+(defs
+  (void user-to-device context f64vector f64vector)
+  (void user-to-device-distance context f64vector f64vector)
+  (void device-to-user context f64vector f64vector)
+  (void device-to-user-distance context f64vector f64vector))
 
 ;; Text procedures
 ;; -----------------------------------------------
@@ -285,6 +310,7 @@
 (defs
   (void select-font-face context c-string font-slant font-weight)
   (void set-font-size context double)
+  (void set-font-matrix context matrix)
   (void show-text context c-string)
   (void font-extents context cairo_font_extents_t)
   (void text-extents context c-string cairo_text_extents_t)
@@ -292,7 +318,6 @@
   (void font-options-set-antialias font-options antialias)
   (void font-options-set-hint-style font-options hint-style)
   (void font-options-set-hint-metrics font-options hint-metrics))
-
 
 ;; Font face procedures
 ;; -----------------------------------------------
