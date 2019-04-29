@@ -47,16 +47,33 @@
                            symbols))
             (sym->int (map (lambda (s) `(cons ',s ,s)) symbols))
             (int->sym (map (lambda (s) `(cons ,s ',s)) symbols)))
-       `(define-foreign-type ,typename integer
-          ; There is probably a more efficient way of doing this than 
-          ; constructing the bindings inside te lambda i.e. just defining
-          ; the symbols in the toplevel
-          (lambda (sym)
-            (let ,bindings
-              (cdr (assq sym (list ,@sym->int)))))
-          (lambda (int)
-            (let ,bindings
-              (cdr (assq int (list ,@int->sym)))))) ))))
+       `(begin
+          ;; 1. Generate a foreign type
+          (define-foreign-type ,typename integer
+            ;; There is probably a more efficient way of doing this than
+            ;; constructing the bindings inside te lambda i.e. just defining
+            ;; the symbols in the toplevel
+            (lambda (sym)
+              (let ,bindings
+                (cdr (assq sym (list ,@sym->int)))))
+            (lambda (int)
+              (let ,bindings
+                (cdr (assq int (list ,@int->sym))))))
+          ,@(map (lambda (sym)
+                          (let* ((v-name (symbol->enum-ident prefix sym))
+                                 (foreign-v-name (string-append "-" v-name))
+                                 (sym-v-name (string->symbol v-name))
+                                 (sym-foreign-v-name (string->symbol foreign-v-name)))
+                            ;; 2. Generate foreign variables of the newly defined type
+                            `(begin
+                               (define-foreign-variable
+                                 ,sym-foreign-v-name
+                                 ,typename
+                                 ,v-name)
+                               ;; 3. Generate constants like CAIRO_FORMAT_INVALID
+                               ;; that reference the newly defined variables
+                               (define ,sym-v-name ,sym-foreign-v-name))))
+                        symbols))))))
 
 (define ((check-pointer tag) o)
   (if (tagged-pointer? o tag)
