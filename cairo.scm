@@ -23,12 +23,119 @@
 (module cairo ()
 
 
-(import scheme (chicken base) (chicken foreign))
+(import scheme
+        (chicken base)
+        (chicken foreign)
+        (chicken blob))
 
 (foreign-declare "#include \"cairo.h\"")
 
 (include "types.scm")
 
+
+;; Text extents
+
+(export make-text-extents-type)
+(export text-extents-x-bearing)
+(export text-extents-y-bearing)
+(export text-extents-width)
+(export text-extents-height)
+(export text-extents-x-advance)
+(export text-extents-y-advance)
+
+(export text-extents-x-bearing-set!)
+(export text-extents-y-bearing-set!)
+(export text-extents-width-set!)
+(export text-extents-height-set!)
+(export text-extents-x-advance-set!)
+(export text-extents-y-advance-set!)
+
+(define-foreign-variable sizeof-text-extents int "sizeof(cairo_text_extents_t)")
+
+;; TODO: I think we could use define-foreign-record-type here.
+;;
+;; We want a garbage-collectable type here; wrap a record type around a byte
+;; vector buffer, and make chicken type-pun the buffer to the C struct.
+;; We only ever construct these to hand to a function for filling in, so no
+;; initialisation needed aside from the buffer.
+(define-record text-extents-type buffer)
+(let ((maker make-text-extents-type))
+  (set! make-text-extents-type
+    (lambda () (maker (make-blob sizeof-text-extents)))))
+
+(define-record-printer (text-extents-type te out)
+  (for-each (lambda (x) (display x out))
+            (list "#<text-extents "
+                  (text-extents-x-bearing te)" "
+                  (text-extents-y-bearing te)" "
+                  (text-extents-width te)" "
+                  (text-extents-height te)" "
+                  (text-extents-x-advance te)" "
+                  (text-extents-y-advance te)">")))
+
+(define-foreign-type text_extents_t scheme-pointer text-extents-type-buffer)
+
+(define text-extents-x-bearing (foreign-lambda* double ((text_extents_t te)) "C_return(((cairo_text_extents_t*)te)->x_bearing);"))
+(define text-extents-y-bearing (foreign-lambda* double ((text_extents_t te)) "C_return(((cairo_text_extents_t*)te)->y_bearing);"))
+(define text-extents-width (foreign-lambda* double ((text_extents_t te)) "C_return(((cairo_text_extents_t*)te)->width);"))
+(define text-extents-height (foreign-lambda* double ((text_extents_t te)) "C_return(((cairo_text_extents_t*)te)->height);"))
+(define text-extents-x-advance (foreign-lambda* double ((text_extents_t te)) "C_return(((cairo_text_extents_t*)te)->x_advance);"))
+(define text-extents-y-advance (foreign-lambda* double ((text_extents_t te)) "C_return(((cairo_text_extents_t*)te)->y_advance);"))
+
+(define text-extents-x-bearing-set! (foreign-lambda* double ((text_extents_t te) (double v)) "((cairo_text_extents_t*)te)->x_bearing = v;"))
+(define text-extents-y-bearing-set! (foreign-lambda* double ((text_extents_t te) (double v)) "((cairo_text_extents_t*)te)->y_bearing = v;"))
+(define text-extents-width-set! (foreign-lambda* double ((text_extents_t te) (double v)) "((cairo_text_extents_t*)te)->width = v;"))
+(define text-extents-height-set! (foreign-lambda* double ((text_extents_t te) (double v)) "((cairo_text_extents_t*)te)->height = v;"))
+(define text-extents-x-advance-set! (foreign-lambda* double ((text_extents_t te) (double v)) "((cairo_text_extents_t*)te)->x_advance = v;"))
+(define text-extents-y-advance-set! (foreign-lambda* double ((text_extents_t te) (double v)) "((cairo_text_extents_t*)te)->y_advance = v;"))
+
+
+;; Font Extents
+
+(export make-font-extents-type)
+(export font-extents-ascent)
+(export font-extents-descent)
+(export font-extents-height)
+(export font-extents-max-x-advance)
+(export font-extents-max-y-advance)
+
+(export font-extents-ascent-set!)
+(export font-extents-descent-set!)
+(export font-extents-height-set!)
+(export font-extents-max-x-advance-set!)
+(export font-extents-max-y-advance-set!)
+
+
+(define-foreign-variable sizeof-font-extents int "sizeof(cairo_font_extents_t)")
+
+;; TODO: I think we could use define-foreign-record-type here.
+(define-record font-extents-type buffer)
+(let ((maker make-font-extents-type))
+  (set! make-font-extents-type
+    (lambda () (maker (make-blob sizeof-font-extents)))))
+
+(define-record-printer (font-extents-type e out)
+  (for-each (lambda (x) (display x out))
+            (list "#<font-extents "
+                  (font-extents-ascent e)" "
+                  (font-extents-descent e)" "
+                  (font-extents-height e)" "
+                  (font-extents-max-x-advance e)" "
+                  (font-extents-max-y-advance e)">")))
+
+(define-foreign-type font_extents_t scheme-pointer font-extents-type-buffer)
+
+(define font-extents-ascent (foreign-lambda* double ((font_extents_t e)) "C_return(((cairo_font_extents_t*)e)->ascent);"))
+(define font-extents-descent (foreign-lambda* double ((font_extents_t e)) "C_return(((cairo_font_extents_t*)e)->descent);"))
+(define font-extents-height (foreign-lambda* double ((font_extents_t e)) "C_return(((cairo_font_extents_t*)e)->height);"))
+(define font-extents-max-x-advance (foreign-lambda* double ((font_extents_t e)) "C_return(((cairo_font_extents_t*)e)->max_x_advance);"))
+(define font-extents-max-y-advance (foreign-lambda* double ((font_extents_t e)) "C_return(((cairo_font_extents_t*)e)->max_y_advance);"))
+
+(define font-extents-ascent-set! (foreign-lambda* double ((font_extents_t e) (double v)) "((cairo_font_extents_t*)e)->ascent = v;"))
+(define font-extents-descent-set! (foreign-lambda* double ((font_extents_t e) (double v)) "((cairo_font_extents_t*)e)->descent = v;"))
+(define font-extents-height-set! (foreign-lambda* double ((font_extents_t e) (double v)) "((cairo_font_extents_t*)e)->height = v;"))
+(define font-extents-max-x-advance-set! (foreign-lambda* double ((font_extents_t e) (double v)) "((cairo_font_extents_t*)e)->max_x_advance = v;"))
+(define font-extents-max-y-advance-set! (foreign-lambda* double ((font_extents_t e) (double v)) "((cairo_font_extents_t*)e)->max_y_advance = v;"))
 
 ;; Context procedures
 ;; -----------------------------------------------
@@ -192,9 +299,10 @@
 (defs
   (void select-font-face! context c-string font-slant font-weight)
   (void set-font-size! context double)
+  (void set-font-matrix! context matrix)
   (void show-text! context c-string)
-  (void font-extents context nonnull-f64vector)
-  (void text-extents context c-string nonnull-f64vector)
+  (void font-extents context font_extents_t)
+  (void text-extents context c-string text_extents_t)
   (void set-font-options! context font-options)
   (void font-options-set-antialias! font-options antialias)
   (void font-options-set-hint-style! font-options hint-style)
