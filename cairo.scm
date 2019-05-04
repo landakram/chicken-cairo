@@ -311,6 +311,11 @@
   (void matrix-transform-point matrix f64vector f64vector)
   )
 
+(defs
+  (void user-to-device context f64vector f64vector)
+  (void user-to-device-distance context f64vector f64vector)
+  (void device-to-user context f64vector f64vector)
+  (void device-to-user-distance context f64vector f64vector))
 
 ;; Text procedures
 ;; -----------------------------------------------
