@@ -147,6 +147,7 @@
   (void save! context)
   (void restore! context)
   (surface get-target context)
+  (void get-matrix context matrix)
   (void push-group! context)
   (void push-group-with-content! context content)
   (pattern pop-group! context)
@@ -289,7 +290,25 @@
   (void scale! context double double)
   (void rotate! context double)
   (void identity-matrix context)
-  
+  (void transform context matrix)
+  (void set-matrix context matrix))
+
+;; Matrix procedures
+;; -----------------------------------------------
+
+(defs
+  (void matrix-init-identity matrix)
+  (void matrix-init matrix
+        double double                        ;; a, b,
+        double double                        ;; c, d
+        double double)                       ;; tx, ty
+  (void matrix-translate matrix double double) ;; x, y
+  (void matrix-scale matrix double double)     ;; x, y
+  (void matrix-rotate matrix double)           ;; radians
+  (status matrix-invert matrix)
+  (void matrix-multiply matrix matrix matrix)
+  (void matrix-transform-distance matrix f64vector f64vector)
+  (void matrix-transform-point matrix f64vector f64vector)
   )
 
 
