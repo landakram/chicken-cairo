@@ -21,309 +21,308 @@
 ; --------------------------------------------------
 
 (module cairo
-*
+    *
 
-(import scheme)
-(import chicken.base)
-(import chicken.foreign)
-(import chicken.blob)
+  (import scheme)
+  (import chicken.base)
+  (import chicken.foreign)
 
-(import chicken.syntax)
-(import-for-syntax chicken.string)
-(import-for-syntax srfi-1 srfi-13 srfi-14)
+  (import chicken.syntax)
+  (import-for-syntax chicken.string)
+  (import-for-syntax srfi-1 srfi-13 srfi-14)
 
-(foreign-declare "#include \"cairo.h\"")
+  (foreign-declare "#include \"cairo.h\"")
 
-;; Define a list of DEFINEs or enums at once.
-(define-syntax --cairo-flags
-  (er-macro-transformer
-   (lambda (e r c)
-     (let ((strs (cdr e)))
-       `(begin
-          ,@(append-map (lambda (str)
-                          (let* ((sym (string->symbol str))
-                                 (psym (string->symbol (string-append "-" (symbol->string sym)))))
-                            `((,(r 'define-foreign-variable) ,psym unsigned-integer ,str)
-                              (,(r 'define) ,sym ,psym))))
-                        strs))))))
+  ;; Define a list of DEFINEs or enums at once.
+  (define-syntax --cairo-flags
+    (er-macro-transformer
+     (lambda (e r c)
+       (let ((strs (cdr e)))
+         `(begin
+            ,@(append-map (lambda (str)
+                            (let* ((sym (string->symbol str))
+                                   (psym (string->symbol (string-append "-" (symbol->string sym)))))
+                              `((,(r 'define-foreign-variable) ,psym unsigned-integer ,str)
+                                (,(r 'define) ,sym ,psym))))
+                          strs))))))
 
-(include "types")
+  (include "types")
 
-;; Text extents
+  ;; Text extents
 
-(define-foreign-variable sizeof-cairo-text-extents int "sizeof(cairo_text_extents_t)")
+  (define-foreign-variable sizeof-cairo-text-extents int "sizeof(cairo_text_extents_t)")
 
-;; TODO: I think we could use define-foreign-record-type here.
-;;
-;; We want a garbage-collectable type here; wrap a record type around a byte
-;; vector buffer, and make chicken type-pun the buffer to the C struct.
-;; We only ever construct these to hand to a function for filling in, so no
-;; initialisation needed aside from the buffer.
-(define-record cairo-text-extents-type buffer)
-(let ((maker make-cairo-text-extents-type))
-  (set! make-cairo-text-extents-type
-    (lambda () (maker (make-blob sizeof-cairo-text-extents)))))
+  ;; TODO: I think we could use define-foreign-record-type here.
+  ;;
+  ;; We want a garbage-collectable type here; wrap a record type around a byte
+  ;; vector buffer, and make chicken type-pun the buffer to the C struct.
+  ;; We only ever construct these to hand to a function for filling in, so no
+  ;; initialisation needed aside from the buffer.
+  (define-record cairo-text-extents-type buffer)
+  (let ((maker make-cairo-text-extents-type))
+    (set! make-cairo-text-extents-type
+      (lambda () (maker (make-blob sizeof-cairo-text-extents)))))
 
-(define-record-printer (cairo-text-extents-type te out)
-  (for-each (lambda (x) (display x out))
-            (list "#<cairo-text-extents "
-                  (cairo-text-extents-x-bearing te)" "
-                  (cairo-text-extents-y-bearing te)" "
-                  (cairo-text-extents-width te)" "
-                  (cairo-text-extents-height te)" "
-                  (cairo-text-extents-x-advance te)" "
-                  (cairo-text-extents-y-advance te)">")))
+  (define-record-printer (cairo-text-extents-type te out)
+    (for-each (lambda (x) (display x out))
+              (list "#<cairo-text-extents "
+                    (cairo-text-extents-x-bearing te)" "
+                    (cairo-text-extents-y-bearing te)" "
+                    (cairo-text-extents-width te)" "
+                    (cairo-text-extents-height te)" "
+                    (cairo-text-extents-x-advance te)" "
+                    (cairo-text-extents-y-advance te)">")))
 
-(define-foreign-type cairo_text_extents_t scheme-pointer cairo-text-extents-type-buffer)
+  (define-foreign-type cairo_text_extents_t scheme-pointer cairo-text-extents-type-buffer)
 
-(define cairo-text-extents-x-bearing (foreign-lambda* double ((cairo_text_extents_t te)) "C_return(((cairo_text_extents_t*)te)->x_bearing);"))
-(define cairo-text-extents-y-bearing (foreign-lambda* double ((cairo_text_extents_t te)) "C_return(((cairo_text_extents_t*)te)->y_bearing);"))
-(define cairo-text-extents-width (foreign-lambda* double ((cairo_text_extents_t te)) "C_return(((cairo_text_extents_t*)te)->width);"))
-(define cairo-text-extents-height (foreign-lambda* double ((cairo_text_extents_t te)) "C_return(((cairo_text_extents_t*)te)->height);"))
-(define cairo-text-extents-x-advance (foreign-lambda* double ((cairo_text_extents_t te)) "C_return(((cairo_text_extents_t*)te)->x_advance);"))
-(define cairo-text-extents-y-advance (foreign-lambda* double ((cairo_text_extents_t te)) "C_return(((cairo_text_extents_t*)te)->y_advance);"))
+  (define cairo-text-extents-x-bearing (foreign-lambda* double ((cairo_text_extents_t te)) "C_return(((cairo_text_extents_t*)te)->x_bearing);"))
+  (define cairo-text-extents-y-bearing (foreign-lambda* double ((cairo_text_extents_t te)) "C_return(((cairo_text_extents_t*)te)->y_bearing);"))
+  (define cairo-text-extents-width (foreign-lambda* double ((cairo_text_extents_t te)) "C_return(((cairo_text_extents_t*)te)->width);"))
+  (define cairo-text-extents-height (foreign-lambda* double ((cairo_text_extents_t te)) "C_return(((cairo_text_extents_t*)te)->height);"))
+  (define cairo-text-extents-x-advance (foreign-lambda* double ((cairo_text_extents_t te)) "C_return(((cairo_text_extents_t*)te)->x_advance);"))
+  (define cairo-text-extents-y-advance (foreign-lambda* double ((cairo_text_extents_t te)) "C_return(((cairo_text_extents_t*)te)->y_advance);"))
 
-(define cairo-text-extents-x-bearing-set! (foreign-lambda* double ((cairo_text_extents_t te) (double v)) "((cairo_text_extents_t*)te)->x_bearing = v;"))
-(define cairo-text-extents-y-bearing-set! (foreign-lambda* double ((cairo_text_extents_t te) (double v)) "((cairo_text_extents_t*)te)->y_bearing = v;"))
-(define cairo-text-extents-width-set! (foreign-lambda* double ((cairo_text_extents_t te) (double v)) "((cairo_text_extents_t*)te)->width = v;"))
-(define cairo-text-extents-height-set! (foreign-lambda* double ((cairo_text_extents_t te) (double v)) "((cairo_text_extents_t*)te)->height = v;"))
-(define cairo-text-extents-x-advance-set! (foreign-lambda* double ((cairo_text_extents_t te) (double v)) "((cairo_text_extents_t*)te)->x_advance = v;"))
-(define cairo-text-extents-y-advance-set! (foreign-lambda* double ((cairo_text_extents_t te) (double v)) "((cairo_text_extents_t*)te)->y_advance = v;"))
+  (define cairo-text-extents-x-bearing-set! (foreign-lambda* double ((cairo_text_extents_t te) (double v)) "((cairo_text_extents_t*)te)->x_bearing = v;"))
+  (define cairo-text-extents-y-bearing-set! (foreign-lambda* double ((cairo_text_extents_t te) (double v)) "((cairo_text_extents_t*)te)->y_bearing = v;"))
+  (define cairo-text-extents-width-set! (foreign-lambda* double ((cairo_text_extents_t te) (double v)) "((cairo_text_extents_t*)te)->width = v;"))
+  (define cairo-text-extents-height-set! (foreign-lambda* double ((cairo_text_extents_t te) (double v)) "((cairo_text_extents_t*)te)->height = v;"))
+  (define cairo-text-extents-x-advance-set! (foreign-lambda* double ((cairo_text_extents_t te) (double v)) "((cairo_text_extents_t*)te)->x_advance = v;"))
+  (define cairo-text-extents-y-advance-set! (foreign-lambda* double ((cairo_text_extents_t te) (double v)) "((cairo_text_extents_t*)te)->y_advance = v;"))
 
-;; Font Extents
+  ;; Font Extents
 
-(define-foreign-variable sizeof-cairo-font-extents int "sizeof(cairo_font_extents_t)")
+  (define-foreign-variable sizeof-cairo-font-extents int "sizeof(cairo_font_extents_t)")
 
-;; TODO: I think we could use define-foreign-record-type here.
-(define-record cairo-font-extents-type buffer)
-(let ((maker make-cairo-font-extents-type))
-  (set! make-cairo-font-extents-type
-    (lambda () (maker (make-blob sizeof-cairo-font-extents)))))
+  ;; TODO: I think we could use define-foreign-record-type here.
+  (define-record cairo-font-extents-type buffer)
+  (let ((maker make-cairo-font-extents-type))
+    (set! make-cairo-font-extents-type
+      (lambda () (maker (make-blob sizeof-cairo-font-extents)))))
 
-(define-record-printer (cairo-font-extents-type e out)
-  (for-each (lambda (x) (display x out))
-                    (list "#<cairo-font-extents "
-                          (cairo-font-extents-ascent e)" "
-                          (cairo-font-extents-descent e)" "
-                          (cairo-font-extents-height e)" "
-                          (cairo-font-extents-max-x-advance e)" "
-                          (cairo-font-extents-max-y-advance e)">")))
+  (define-record-printer (cairo-font-extents-type e out)
+    (for-each (lambda (x) (display x out))
+              (list "#<cairo-font-extents "
+                    (cairo-font-extents-ascent e)" "
+                    (cairo-font-extents-descent e)" "
+                    (cairo-font-extents-height e)" "
+                    (cairo-font-extents-max-x-advance e)" "
+                    (cairo-font-extents-max-y-advance e)">")))
 
-(define-foreign-type cairo_font_extents_t scheme-pointer cairo-font-extents-type-buffer)
+  (define-foreign-type cairo_font_extents_t scheme-pointer cairo-font-extents-type-buffer)
 
-(define cairo-font-extents-ascent (foreign-lambda* double ((cairo_font_extents_t e)) "C_return(((cairo_font_extents_t*)e)->ascent);"))
-(define cairo-font-extents-descent (foreign-lambda* double ((cairo_font_extents_t e)) "C_return(((cairo_font_extents_t*)e)->descent);"))
-(define cairo-font-extents-height (foreign-lambda* double ((cairo_font_extents_t e)) "C_return(((cairo_font_extents_t*)e)->height);"))
-(define cairo-font-extents-max-x-advance (foreign-lambda* double ((cairo_font_extents_t e)) "C_return(((cairo_font_extents_t*)e)->max_x_advance);"))
-(define cairo-font-extents-max-y-advance (foreign-lambda* double ((cairo_font_extents_t e)) "C_return(((cairo_font_extents_t*)e)->max_y_advance);"))
+  (define cairo-font-extents-ascent (foreign-lambda* double ((cairo_font_extents_t e)) "C_return(((cairo_font_extents_t*)e)->ascent);"))
+  (define cairo-font-extents-descent (foreign-lambda* double ((cairo_font_extents_t e)) "C_return(((cairo_font_extents_t*)e)->descent);"))
+  (define cairo-font-extents-height (foreign-lambda* double ((cairo_font_extents_t e)) "C_return(((cairo_font_extents_t*)e)->height);"))
+  (define cairo-font-extents-max-x-advance (foreign-lambda* double ((cairo_font_extents_t e)) "C_return(((cairo_font_extents_t*)e)->max_x_advance);"))
+  (define cairo-font-extents-max-y-advance (foreign-lambda* double ((cairo_font_extents_t e)) "C_return(((cairo_font_extents_t*)e)->max_y_advance);"))
 
-(define cairo-font-extents-ascent-set! (foreign-lambda* double ((cairo_font_extents_t e) (double v)) "((cairo_font_extents_t*)e)->ascent = v;"))
-(define cairo-font-extents-descent-set! (foreign-lambda* double ((cairo_font_extents_t e) (double v)) "((cairo_font_extents_t*)e)->descent = v;"))
-(define cairo-font-extents-height-set! (foreign-lambda* double ((cairo_font_extents_t e) (double v)) "((cairo_font_extents_t*)e)->height = v;"))
-(define cairo-font-extents-max-x-advance-set! (foreign-lambda* double ((cairo_font_extents_t e) (double v)) "((cairo_font_extents_t*)e)->max_x_advance = v;"))
-(define cairo-font-extents-max-y-advance-set! (foreign-lambda* double ((cairo_font_extents_t e) (double v)) "((cairo_font_extents_t*)e)->max_y_advance = v;"))
+  (define cairo-font-extents-ascent-set! (foreign-lambda* double ((cairo_font_extents_t e) (double v)) "((cairo_font_extents_t*)e)->ascent = v;"))
+  (define cairo-font-extents-descent-set! (foreign-lambda* double ((cairo_font_extents_t e) (double v)) "((cairo_font_extents_t*)e)->descent = v;"))
+  (define cairo-font-extents-height-set! (foreign-lambda* double ((cairo_font_extents_t e) (double v)) "((cairo_font_extents_t*)e)->height = v;"))
+  (define cairo-font-extents-max-x-advance-set! (foreign-lambda* double ((cairo_font_extents_t e) (double v)) "((cairo_font_extents_t*)e)->max_x_advance = v;"))
+  (define cairo-font-extents-max-y-advance-set! (foreign-lambda* double ((cairo_font_extents_t e) (double v)) "((cairo_font_extents_t*)e)->max_y_advance = v;"))
 
-;; Context procedures
-;; -----------------------------------------------
+  ;; Context procedures
+  ;; -----------------------------------------------
 
-(defs
-  (context create surface)
-  (void destroy context)
-  (status status context)
-  (void save context)
-  (void restore context)
-  (surface get-target context)
-  (void get-matrix context matrix)
-  (void push-group context)
-  (void push-group-with-content context content)
-  (pattern pop-group context)
-  (void pop-group-to-source context)
-  (surface get-group-target context)
-  (void set-source-rgb context double double double)
-  (void set-source-rgba context double double double double)
-  (void set-source context pattern)
-  (void set-source-surface context surface double double)
-  (pattern get-source context)
-  (void set-antialias context antialias)
-  (antialias get-antialias context)
-  (void set-dash context f64vector int double) ;; TODO better
-  (int get-dash-count context)
-  #; (void get-dash context f64vector (c-pointer double)) ;; TODO multiple return values
-  (void set-fill-rule context fill-rule)
-  (fill-rule get-fill-rule context)
-  (void set-line-cap context line-cap)
-  (line-cap get-line-cap context)
-  (void set-line-join context line-join)
-  (line-join get-line-join context)
-  (void set-line-width context double)
-  (double get-line-width context)
-  (void set-miter-limit context double)
-  (double get-miter-limit context)
-  (void set-operator context operator)
-  (operator get-operator context)
-  (void set-tolerance context double)
-  (double get-tolerance context)
-  (void clip context)
-  (void clip-preserve context)
-  #;(void clip-extents context double double double double) ;; TODO multiple return values
-  (bool in-clip? context double double)
-  (void reset-clip context)
-  #;(void rectangle-list-destroy rectangle-list) ;; TODO rectangle-list
-  #;(rectangle-list copy-clip-rectangle-list context) ;; TODO rectangle-list
-  (void fill context)
-  (void fill-preserve context)
-  #;(void fill-extents context double double double double) ;; TODO multiple return values
-  (bool in-fill? context double double)
-  (void mask context pattern)
-  (void mask-surface context surface double double)
-  (void paint context)
-  (void paint-with-alpha context double)
-  (void stroke context)
-  (void stroke-preserve context)
-  #;(void stroke-extents context double double double double) ;; TODO multiple return values
-  (bool in-stroke? context double double)
-  (void copy-page context)
-  (void show-page context)
-  )
-
-
-;; Paths procedures
-;; -----------------------------------------------
-
-(defs
-  (path copy-path context) ;; TODO Path datatype
-  (path copy-path-flat context)
-  (void path-destroy path) ;; TODO Path datatype
-  (void append-path context path) ;; TODO Path datatype
-  (bool has-current-point? context)
-  #;(void get-current-point context double double) ;; TODO multiple return values
-  (void new-path context)
-  (void new-sub-path context)
-  (void close-path context)
-  (void arc context double double double double double)
-  (void arc-negative context double double double double double)
-  (void curve-to context double double double double double double)
-  (void line-to context double double)
-  (void move-to context double double)
-  (void rectangle context double double double double)
-  #;(void glyph-path context glyph int) ;; TODO glyph
-  (void text-path context c-string)
-  (void rel-curve-to context double double double double double double)
-  (void rel-line-to context double double)
-  (void rel-move-to context double double)
-  #;(void path-extents context double double double double) ;; TODO multiple return values
-  )
+  (defs
+    (context create surface)
+    (void destroy! context)
+    (status status context)
+    (void save! context)
+    (void restore! context)
+    (surface get-target context)
+    (void get-matrix context matrix)
+    (void push-group! context)
+    (void push-group-with-content! context content)
+    (pattern pop-group! context)
+    (void pop-group-to-source! context)
+    (surface get-group-target context)
+    (void set-source-rgb! context double double double)
+    (void set-source-rgba! context double double double double)
+    (void set-source! context pattern)
+    (void set-source-surface! context surface double double)
+    (pattern get-source context)
+    (void set-antialias! context antialias)
+    (antialias get-antialias context)
+    (void set-dash! context f64vector int double) ;; TODO better
+    (int get-dash-count context)
+    #; (void get-dash context f64vector (c-pointer double)) ;; TODO multiple return values
+    (void set-fill-rule! context fill-rule)
+    (fill-rule get-fill-rule context)
+    (void set-line-cap! context line-cap)
+    (line-cap get-line-cap context)
+    (void set-line-join! context line-join)
+    (line-join get-line-join context)
+    (void set-line-width! context double)
+    (double get-line-width context)
+    (void set-miter-limit! context double)
+    (double get-miter-limit context)
+    (void set-operator! context operator)
+    (operator get-operator context)
+    (void set-tolerance! context double)
+    (double get-tolerance context)
+    (void clip! context)
+    (void clip-preserve! context)
+    #;(void clip-extents context double double double double) ;; TODO multiple return values
+    (bool in-clip? context double double)
+    (void reset-clip! context)
+    #;(void rectangle-list-destroy! rectangle-list) ;; TODO rectangle-list
+    #;(rectangle-list copy-clip-rectangle-list context) ;; TODO rectangle-list
+    (void fill! context)
+    (void fill-preserve! context)
+    #;(void fill-extents context double double double double) ;; TODO multiple return values
+    (bool in-fill? context double double)
+    (void mask! context pattern)
+    (void mask-surface! context surface double double)
+    (void paint! context)
+    (void paint-with-alpha! context double)
+    (void stroke! context)
+    (void stroke-preserve! context)
+    #;(void stroke-extents context double double double double) ;; TODO multiple return values
+    (bool in-stroke? context double double)
+    (void copy-page! context)
+    (void show-page! context)
+    )
 
 
-;; Surface procedures
-;; -----------------------------------------------
+  ;; Paths procedures
+  ;; -----------------------------------------------
 
-(defs
-  (surface surface-create-similar surface content int int)
-  (surface surface-create-similar-image surface format int int)
-  (surface surface-create-for-rectangle surface double double double double)
-  (status surface-write-to-png surface c-string)
-  (void surface-destroy surface)
-  (status surface-status surface)
-  (void surface-finish surface)
-  (void surface-flush surface)
-  (device surface-get-device surface)
-  #;(void surface-get-font-options surface font-options) ;; TODO return value
-  (content surface-get-content surface)
-  (void surface-mark-dirty surface)
-  (void surface-mark-dirty-rectangle surface int int int int)
-  (void surface-set-device-offset surface double double)
-  #;(void surface-get-device-offset surface double double) ;; TODO multiple return values
-  #;(void surface-get-device-scale surface double double) ;; TODO multiple return values
-  (void surface-set-device-scale surface double double)
-  (void surface-set-fallback-resolution surface double double)
-  #;(void surface-get-fallback-resolution surface double double) ;; TODO multiple return values
-  (surface-type surface-get-type surface)
-  (void surface-copy-page surface)
-  (void surface-show-page surface)
-  (bool surface-has-show-text-glyphs? surface)
-  #;(status surface-set-mime-data surface c-string blob long …) ;; TODO function pointer
-  #;(void surface-get-mime-data surface c-string c-pointer long) ;; TODO multiple return values
-  (bool surface-supports-mime-type? surface c-string)
-  #;(surface surface-map-to-image surface rectangle-int) ;; TODO rectangle-int
-  (void surface-unmap-image surface surface)
-  )
+  (defs
+    (path copy-path context) ;; TODO Path datatype
+    (path copy-path-flat context)
+    (void path-destroy! path)      ;; TODO Path datatype
+    (void append-path! context path) ;; TODO Path datatype
+    (bool has-current-point? context)
+    #;(void get-current-point context double double) ;; TODO multiple return values
+    (void new-path! context)
+    (void new-sub-path! context)
+    (void close-path! context)
+    (void arc! context double double double double double)
+    (void arc-negative! context double double double double double)
+    (void curve-to! context double double double double double double)
+    (void line-to! context double double)
+    (void move-to! context double double)
+    (void rectangle! context double double double double)
+    #;(void glyph-path! context glyph int) ;; TODO glyph
+    (void text-path! context c-string)
+    (void rel-curve-to! context double double double double double double)
+    (void rel-line-to! context double double)
+    (void rel-move-to! context double double)
+    #;(void path-extents context double double double double) ;; TODO multiple return values
+    )
 
 
-;; Patterns procedures
-;; -----------------------------------------------
+  ;; Surface procedures
+  ;; -----------------------------------------------
 
-(defs
-  (pattern pattern-create-radial double double double double double double)
-  (pattern pattern-create-mesh)
-  (void pattern-destroy pattern)
-  (void pattern-add-color-stop-rgb pattern double double double double)
-  (void pattern-add-color-stop-rgba pattern double double double double double)
-  (void mesh-pattern-begin-patch pattern)
-  (void mesh-pattern-end-patch pattern)
-  (void mesh-pattern-move-to pattern double double)
-  (void mesh-pattern-line-to pattern double double)
-  (void mesh-pattern-curve-to pattern double double double double double double)
-  (void mesh-pattern-set-corner-color-rgb pattern unsigned-int double double double)
-  (void mesh-pattern-set-corner-color-rgba pattern unsigned-int double double double double)
-  (void pattern-set-extend pattern extend))
+  (defs
+    (surface surface-create-similar surface content int int)
+    (surface surface-create-similar-image surface format int int)
+    (surface surface-create-for-rectangle surface double double double double)
+    (status surface-write-to-png surface c-string)
+    (void surface-destroy! surface)
+    (status surface-status surface)
+    (void surface-finish! surface)
+    (void surface-flush! surface)
+    (device surface-get-device surface)
+    #;(void surface-get-font-options surface font-options) ;; TODO return value
+    (content surface-get-content surface)
+    (void surface-mark-dirty! surface)
+    (void surface-mark-dirty-rectangle! surface int int int int)
+    (void surface-set-device-offset! surface double double)
+    #;(void surface-get-device-offset surface double double) ;; TODO multiple return values
+    #;(void surface-get-device-scale surface double double) ;; TODO multiple return values
+    (void surface-set-device-scale! surface double double)
+    (void surface-set-fallback-resolution! surface double double)
+    #;(void surface-get-fallback-resolution surface double double) ;; TODO multiple return values
+    (surface-type surface-get-type surface)
+    (void surface-copy-page! surface)
+    (void surface-show-page! surface)
+    (bool surface-has-show-text-glyphs? surface)
+    #;(status surface-set-mime-data! surface c-string blob long …) ;; TODO function pointer
+    #;(void surface-get-mime-data surface c-string c-pointer long) ;; TODO multiple return values
+    (bool surface-supports-mime-type? surface c-string)
+    #;(surface surface-map-to-image! surface rectangle-int) ;; TODO rectangle-int
+    (void surface-unmap-image! surface surface)
+    )
 
 
-;; Transformations procedures
-;; -----------------------------------------------
+  ;; Patterns procedures
+  ;; -----------------------------------------------
 
-(defs
-  (void translate context double double)
-  (void scale context double double)
-  (void rotate context double)
-  (void transform context matrix)
-  (void set-matrix context matrix)
-  (void identity-matrix context))
+  (defs
+    (pattern pattern-create-radial double double double double double double)
+    (pattern pattern-create-mesh)
+    (void pattern-destroy! pattern)
+    (void pattern-add-color-stop-rgb! pattern double double double double)
+    (void pattern-add-color-stop-rgba! pattern double double double double double)
+    (void mesh-pattern-begin-patch! pattern)
+    (void mesh-pattern-end-patch! pattern)
+    (void mesh-pattern-move-to! pattern double double)
+    (void mesh-pattern-line-to! pattern double double)
+    (void mesh-pattern-curve-to! pattern double double double double double double)
+    (void mesh-pattern-set-corner-color-rgb! pattern unsigned-int double double double)
+    (void mesh-pattern-set-corner-color-rgba! pattern unsigned-int double double double double)
+    (void pattern-set-extend! pattern extend))
 
-;; Matrix procedures
-;; -----------------------------------------------
 
-(defs
-  (void matrix-init-identity matrix)
-  (void matrix-init matrix
-        double double    ;; a, b,
-        double double    ;; c, d
-        double double)   ;; tx, ty
-  (void matrix-translate matrix double double) ;; x, y
-  (void matrix-scale matrix double double) ;; x, y
-  (void matrix-rotate matrix double) ;; radians
-  (status matrix-invert matrix)
-  (void matrix-multiply matrix matrix matrix)
-  (void matrix-transform-distance matrix f64vector f64vector)
-  (void matrix-transform-point matrix f64vector f64vector)
-  )
+  ;; Transformations procedures
+  ;; -----------------------------------------------
 
-(defs
-  (void user-to-device context f64vector f64vector)
-  (void user-to-device-distance context f64vector f64vector)
-  (void device-to-user context f64vector f64vector)
-  (void device-to-user-distance context f64vector f64vector))
+  (defs
+    (void translate context double double)
+    (void scale context double double)
+    (void rotate context double)
+    (void transform context matrix)
+    (void set-matrix context matrix)
+    (void identity-matrix context))
 
-;; Text procedures
-;; -----------------------------------------------
+  ;; Matrix procedures
+  ;; -----------------------------------------------
 
-(defs
-  (void select-font-face context c-string font-slant font-weight)
-  (void set-font-size context double)
-  (void set-font-matrix context matrix)
-  (void show-text context c-string)
-  (void font-extents context cairo_font_extents_t)
-  (void text-extents context c-string cairo_text_extents_t)
-  (void set-font-options context font-options)
-  (void font-options-set-antialias font-options antialias)
-  (void font-options-set-hint-style font-options hint-style)
-  (void font-options-set-hint-metrics font-options hint-metrics))
+  (defs
+    (void matrix-init-identity matrix)
+    (void matrix-init matrix
+          double double                        ;; a, b,
+          double double                        ;; c, d
+          double double)                       ;; tx, ty
+    (void matrix-translate matrix double double) ;; x, y
+    (void matrix-scale matrix double double)     ;; x, y
+    (void matrix-rotate matrix double)           ;; radians
+    (status matrix-invert matrix)
+    (void matrix-multiply matrix matrix matrix)
+    (void matrix-transform-distance matrix f64vector f64vector)
+    (void matrix-transform-point matrix f64vector f64vector)
+    )
+
+  (defs
+    (void user-to-device context f64vector f64vector)
+    (void user-to-device-distance context f64vector f64vector)
+    (void device-to-user context f64vector f64vector)
+    (void device-to-user-distance context f64vector f64vector))
+
+  ;; Text procedures
+  ;; -----------------------------------------------
+
+  (defs
+    (void select-font-face! context c-string font-slant font-weight)
+    (void set-font-size! context double)
+    (void set-font-matrix! context matrix)
+    (void show-text! context c-string)
+    (void font-extents context cairo_font_extents_t)
+    (void text-extents context c-string cairo_text_extents_t)
+    (void set-font-options! context font-options)
+    (void font-options-set-antialias! font-options antialias)
+    (void font-options-set-hint-style! font-options hint-style)
+    (void font-options-set-hint-metrics! font-options hint-metrics))
 
 ;; Font face procedures
 ;; -----------------------------------------------
 
 (defs
-  (void font-face-destroy font-face)
+  (void font-face-destroy! font-face)
   (status font-face-status font-face)
   (font-type font-face-get-type font-face)
   (font-options font-options-create)
